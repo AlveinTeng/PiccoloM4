@@ -51,10 +51,16 @@ namespace Generator
                 continue;
             Mustache::data filed_define;
 
+            if(field->m_name == "blend_clip_file_length") {
+                std::cout << "[generator], the type is: " << field->m_type << std::endl;
+            }
             filed_define.set("class_field_name", field->m_name);
             filed_define.set("class_field_type", field->m_type);
             filed_define.set("class_field_display_name", field->m_display_name);
             bool is_vector = field->m_type.find(vector_prefix) == 0;
+            if(is_vector) {
+                std::cout << "[generated], Detect vector, class name is: " << class_temp->getClassName() << std::endl;
+            }
             filed_define.set("class_field_is_vector", is_vector);
             feild_defs.push_back(filed_define);
         }

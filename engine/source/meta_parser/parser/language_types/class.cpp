@@ -9,6 +9,10 @@ Class::Class(const Cursor& cursor, const Namespace& current_namespace) :
     m_qualified_name(Utils::getTypeNameWithoutNamespace(cursor.getType())),
     m_display_name(Utils::getNameWithoutFirstM(m_qualified_name))
 {
+    // std::cout << "CLASS" << std::endl;
+    if (m_name == "BlendState") {
+        std::cout << "[CLASS], the type of blend_clip_file_length is " << m_qualified_name << std::endl;
+    }
     Utils::replaceAll(m_name, " ", "");
     Utils::replaceAll(m_name, "Piccolo::", "");
 
@@ -23,8 +27,13 @@ Class::Class(const Cursor& cursor, const Namespace& current_namespace) :
             }
             break;
             // field
+            
             case CXCursor_FieldDecl:
+                
                 m_fields.emplace_back(new Field(child, current_namespace, this));
+                if (m_name == "BlendState") {
+                    std::cout << "[CLASS], " << m_fields.back()->m_name << "has type " << m_fields.back()->m_type << std::endl;
+                }
                 break;
             // method
             case CXCursor_CXXMethod:

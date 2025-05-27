@@ -50,6 +50,12 @@ namespace Generator
             if (!class_temp->shouldCompile())
                 continue;
 
+            if (class_temp->getClassName() == "BlendState") {
+                for (auto field : class_temp->m_fields) {
+                    std::cout << "[REFLECTION] the field name is " << field->m_name << " , with type: " << field->m_type << std::endl; 
+                }
+            }
+
             class_names.insert_or_assign(class_temp->getClassName(), false);
             class_names[class_temp->getClassName()] = true;
 

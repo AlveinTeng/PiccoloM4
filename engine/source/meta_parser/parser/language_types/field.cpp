@@ -13,6 +13,16 @@ Field::Field(const Cursor& cursor, const Namespace& current_namespace, Class* pa
 
     auto ret_string = Utils::getStringWithoutQuot(m_meta_data.getProperty("default"));
     m_default       = ret_string;
+
+   if (m_name == "index_buffer") {
+   std::cout << "[DEBUG] Field cursor: spelling = " << cursor.getSpelling()
+          << ", kind = " << cursor.getKind()
+          << ", display = " << cursor.getDisplayName()
+          << ", type display = " << cursor.getType().GetDisplayName()
+          << ", file: " << cursor.getSourceFile()
+          << std::endl;
+}
+
 }
 
 bool Field::shouldCompile(void) const { return isAccessible(); }

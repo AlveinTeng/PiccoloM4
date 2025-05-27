@@ -46,6 +46,7 @@ int parse(std::string project_input_file_name,
           std::string module_name,
           std::string show_errors)
 {
+    
     std::cout << std::endl;
     std::cout << "Parsing meta data for target \"" << module_name << "\"" << std::endl;
     std::fstream input_file;

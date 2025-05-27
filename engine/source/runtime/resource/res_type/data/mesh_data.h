@@ -51,4 +51,7 @@ namespace Piccolo
         std::vector<SkeletonBinding> bind;
     };
 
+    static_assert(std::is_same<decltype(MeshData::index_buffer), std::vector<int>>::value, "Type mismatch!");
+
+
 } // namespace Piccolo
