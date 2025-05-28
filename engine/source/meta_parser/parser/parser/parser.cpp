@@ -49,7 +49,7 @@ MetaParser::MetaParser(const std::string project_input_file,
     m_source_include_file_name(include_file_path), m_index(nullptr), m_translation_unit(nullptr),
     m_sys_include(sys_include), m_module_name(module_name), m_is_show_errors(is_show_errors)
 {
-    m_work_paths = Utils::split(include_path, ";");
+    m_work_paths = Utils::split(include_path, ":");
 
     m_generators.emplace_back(new Generator::SerializerGenerator(
         m_work_paths[0], std::bind(&MetaParser::getIncludeFile, this, std::placeholders::_1)));
@@ -137,6 +137,60 @@ bool MetaParser::parseProject()
     return result;
 }
 
+// int MetaParser::parse(void)
+// {
+//     bool parse_include_ = parseProject();
+//     if (!parse_include_)
+//     {
+//         std::cerr << "Parsing project file error! " << std::endl;
+//         return -1;
+//     }
+
+//     std::cerr << "Parsing the whole project..." << std::endl;
+//     int is_show_errors      = m_is_show_errors ? 1 : 0;
+//     m_index                 = clang_createIndex(true, is_show_errors);
+//     arguments.emplace_back("-std=c++17");
+//     std::string pre_include = "-I";
+//     std::string sys_include_temp;
+//     if (!(m_sys_include == "*"))
+//     {
+//         sys_include_temp = pre_include + m_sys_include;
+//         arguments.emplace_back(sys_include_temp.c_str());
+//     }
+
+//     auto paths = m_work_paths;
+//     for (int index = 0; index < paths.size(); ++index)
+//     {
+//         paths[index] = pre_include + paths[index];
+
+//         arguments.emplace_back(paths[index].c_str());
+//     }
+
+//     fs::path input_path(m_source_include_file_name);
+//     if (!fs::exists(input_path))
+//     {
+//         std::cerr << input_path << " is not exist" << std::endl;
+//         return -2;
+//     }
+
+//     std::cout << "libclang arguments:" << std::endl;
+//     for (auto arg : arguments) {
+//         std::cout << arg << std::endl;
+//     }
+
+//     m_translation_unit = clang_createTranslationUnitFromSourceFile(
+//         m_index, m_source_include_file_name.c_str(), static_cast<int>(arguments.size()), arguments.data(), 0, nullptr);
+//     auto cursor = clang_getTranslationUnitCursor(m_translation_unit);
+
+//     Namespace temp_namespace;
+
+//     buildClassAST(cursor, temp_namespace);
+
+//     temp_namespace.clear();
+
+//     return 0;
+// }
+
 int MetaParser::parse(void)
 {
     bool parse_include_ = parseProject();
@@ -149,20 +203,35 @@ int MetaParser::parse(void)
     std::cerr << "Parsing the whole project..." << std::endl;
     int is_show_errors      = m_is_show_errors ? 1 : 0;
     m_index                 = clang_createIndex(true, is_show_errors);
-    std::string pre_include = "-I";
-    std::string sys_include_temp;
-    if (!(m_sys_include == "*"))
-    {
-        sys_include_temp = pre_include + m_sys_include;
-        arguments.emplace_back(sys_include_temp.c_str());
+
+    // 1. 用 std::vector<std::string> 先拼装参数
+    std::vector<std::string> real_arguments;
+    real_arguments.push_back("-x");
+    real_arguments.push_back("c++");
+    real_arguments.push_back("-std=c++17");
+    real_arguments.push_back("-D__REFLECTION_PARSER__");
+    real_arguments.push_back("-DNDEBUG");
+    real_arguments.push_back("-D__clang__");
+    real_arguments.push_back("-w");
+    real_arguments.push_back("-MG");
+    real_arguments.push_back("-M");
+    real_arguments.push_back("-ferror-limit=0");
+    real_arguments.push_back("-o");
+    real_arguments.push_back("clangLog.txt");
+
+    // sys_include 目录
+    if (!m_sys_include.empty() && m_sys_include != "*")
+        real_arguments.push_back("-I" + m_sys_include);
+
+    // m_work_paths (用分号split后的所有路径)
+    for (const auto& path : m_work_paths) {
+        real_arguments.push_back("-I" + path);
     }
 
-    auto paths = m_work_paths;
-    for (int index = 0; index < paths.size(); ++index)
-    {
-        paths[index] = pre_include + paths[index];
-
-        arguments.emplace_back(paths[index].c_str());
+    // 2. 转为 const char*（注意生命周期）
+    std::vector<const char*> arguments;
+    for (const auto& s : real_arguments) {
+        arguments.push_back(s.c_str());
     }
 
     fs::path input_path(m_source_include_file_name);
@@ -170,6 +239,11 @@ int MetaParser::parse(void)
     {
         std::cerr << input_path << " is not exist" << std::endl;
         return -2;
+    }
+
+    std::cout << "libclang arguments:" << std::endl;
+    for (auto arg : arguments) {
+        std::cout << arg << std::endl;
     }
 
     m_translation_unit = clang_createTranslationUnitFromSourceFile(
@@ -184,6 +258,7 @@ int MetaParser::parse(void)
 
     return 0;
 }
+
 
 void MetaParser::generateFiles(void)
 {

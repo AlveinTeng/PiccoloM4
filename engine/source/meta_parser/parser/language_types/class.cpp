@@ -10,7 +10,7 @@ Class::Class(const Cursor& cursor, const Namespace& current_namespace) :
     m_display_name(Utils::getNameWithoutFirstM(m_qualified_name))
 {
     // std::cout << "CLASS" << std::endl;
-    if (m_name == "BlendState") {
+    if (m_name == "BoneBlendWeight") {
         std::cout << "[CLASS], the type of blend_clip_file_length is " << m_qualified_name << std::endl;
     }
     Utils::replaceAll(m_name, " ", "");
@@ -31,7 +31,7 @@ Class::Class(const Cursor& cursor, const Namespace& current_namespace) :
             case CXCursor_FieldDecl:
                 
                 m_fields.emplace_back(new Field(child, current_namespace, this));
-                if (m_name == "BlendState") {
+                if (m_name == "BoneBlendWeight") {
                     std::cout << "[CLASS], " << m_fields.back()->m_name << "has type " << m_fields.back()->m_type << std::endl;
                 }
                 break;
